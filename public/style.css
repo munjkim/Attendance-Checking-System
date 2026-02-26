@@ -1,0 +1,270 @@
+body {
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+  background-color: #f7f7f7;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  min-height: 100vh;
+}
+
+header {
+  background-color: #004080;
+  color: white;
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+#datetime {
+  text-align: center;
+  margin: 1.5rem 0;
+  font-size: 2rem;
+  color: #333;
+}
+
+#tag-instruction {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 500;
+  color: #555;
+  margin-top: 1rem;
+}
+
+.card-info {
+  display: flex;
+  flex-direction: column;
+  margin: 2rem auto;
+  font-size: 1.5rem;
+  line-height: 2;
+  background-color: white;
+  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: fit-content;
+  font-family: 'Noto Sans KR', sans-serif; /* ✅ 전체 폰트 통일 */
+  min-width: 450px;
+}
+
+.info-row {
+  display: flex;
+  align-items: baseline;
+  margin: 0.2rem 0;
+}
+
+.label {
+  width: 170px;               /* ✅ 라벨 길이 고정 */
+  text-align: right;          /* ✅ `:` 위치 맞춤 */
+  padding-right: 10px;
+  font-weight: 600;
+  font-size: 2rem;
+  white-space: nowrap;  /* ✅ 줄바꿈 방지 */
+}
+
+.value {
+  font-size: 2rem;
+  font-family: 'Noto Sans KR', sans-serif;  /* ✅ 값도 동일 폰트로 강제 */
+  color: #111;
+}
+
+.info-label {
+  display: inline-block;
+  width: 200px;      /* ✅ 고정 너비 */
+  font-weight: 600;
+  text-align: left;
+  color: #333;
+}
+
+.info-value {
+  flex-grow: 1;
+  font-family: monospace;
+  color: #111;
+}
+
+.card-info.green-bg { background-color: rgba(0, 255, 0, 0.7); }     /* green */
+.card-info.orange-bg { background-color: rgba(255, 165, 0, 0.7); }  /* orange */
+.card-info.blue-bg { background-color: rgba(0, 120, 255, 0.7); }      /* blue */
+.card-info.red-bg { background-color: rgba(255, 0, 0, 0.7); }       /* red */
+
+#status {
+  font-weight: bold;
+  margin-top: 1rem;
+  font-size: 1.5rem;
+  color: #444;
+  text-align: center;
+  width: 100%;
+}
+
+#status.ok {
+  color: green;
+  animation: none;
+}
+#status.duplicate {
+  color: orange;
+  animation: none;
+}
+#status.error {
+  color: red;
+  animation: none;
+}
+
+#loading {
+  display: none;
+}
+
+.pulse {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.2; }
+  50% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+
+#device-status {
+  position: absolute;
+  bottom: 10px;
+  right: 20px;
+  font-size: 0.95rem;
+  color: #666;
+}
+
+.admin-buttons {
+  position: absolute;
+  bottom: 10px;
+  left: 20px;
+}
+
+/* 왼쪽 하단 상태 텍스트 */
+.status-indicator {
+  position: absolute;
+  bottom: 50px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+  color: #444;
+  gap: 0.5rem;
+}
+
+/* 상태 색상 원 */
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.status-dot.red {
+  background-color: red;
+}
+
+.status-dot.green {
+  background-color: green;
+}
+
+.status-dot.blue {
+  background-color: blue;
+}
+
+.progress-bar-bg {
+  width: 300px;
+  height: 16px;
+  background-color: #ddd;
+  margin: 10px auto;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: #4caf50;
+  width: 0%;
+  transition: width 0.5s ease;
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: center;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.table-container {
+  margin: 2rem auto;
+  max-width: 600px;
+}
+
+thead {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex; 
+  justify-content: center; 
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  width: 320px;
+  max-width: 90vw;
+  text-align: center;
+}
+
+.modal-content {
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-content input {
+  width: 100%;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* gap: 0.1rem; */
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.attendance-section {
+  margin-top: 2rem;
+  padding: 1rem 2rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  background:transparent;
+  border-radius: 12px;
+  box-shadow: none;
+}

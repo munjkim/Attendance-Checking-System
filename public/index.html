@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Data Structure Attendance System</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>Data Structure Attendance System</header>
+
+  <div id="datetime">--:--:--</div>
+  <div id="tag-instruction">Please tag your card</div>
+
+  <!-- 카드 정보 출력 -->
+  <div class="card-info">
+    <div class="info-row">
+      <div class="label">Name:</div>
+      <div class="value" id="name">-</div>
+    </div>
+    <div class="info-row">
+      <div class="label">Student ID:</div>
+      <div class="value" id="id">-</div>
+    </div>
+    <div id="status" class="pulse">Waiting for card...</div>
+  </div>
+
+  <!-- 출석률 + 테이블 전체 영역 -->
+  <div class="attendance-section" style="display: none;">
+    <div class="stats" style="text-align:center; margin-top: 1.5rem;">
+      <strong id="summary">Attendance: 0 / 0 (0.0%)</strong>
+      <div class="progress-bar-bg">
+        <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <div class="table-container" style="margin: 2rem auto; max-width: 600px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Student ID</th>
+            <th>Name</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="attendee-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 왼쪽 하단 관리자 버튼 -->
+  <div class="admin-buttons">
+    <button onclick="startSession()">Start</button>
+    <button onclick="endSession()">End</button>
+    <button onclick="startRegistrationMode()">Card Registration</button>
+  </div>
+
+  <!-- 왼쪽 하단 상태 인디케이터 -->
+  <div class="status-indicator" id="system-status">
+    <div class="status-dot red" id="status-dot"></div>
+    <div id="status-text">Device disconnected</div>
+  </div>
+
+  <!-- 우측 하단 기기 연결 상태 -->
+  <div id="device-status">NFC device disconnected</div>
+
+  <!-- 등록 모달 -->
+  <div id="registration-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h3>Register New Student</h3>
+      <p>UID: <span id="reg-uid">-</span></p>
+      <input id="reg-name" placeholder="Name" />
+      <input id="reg-id" placeholder="Student ID" />
+      <button onclick="submitRegistration()">Register</button>
+      <button onclick="cancelRegistration()">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    const nameEl = document.getElementById("name");
+    const idEl = document.getElementById("id");
+    const statusEl = document.getElementById("status");
+    const deviceStatusEl = document.getElementById("device-status");
+    const cardInfoEl = document.querySelector(".card-info");
+    const summaryEl = document.getElementById("summary");
+    const tableBody = document.getElementById("attendee-table");
+
+    const statusDot = document.getElementById("status-dot");
+    const statusText = document.getElementById("status-text");
+
+    let isDeviceConnected = false;
+    let isSessionActive = false;
+    let currentReaderName = null;
+
+    // 등록 모드 상태 변수
+    let isRegisterMode = false;
+    let registerPendingUID = null;
+
+    const socket = new WebSocket("ws://localhost:3000");
+
+    socket.onmessage = function (event) {
+      const data = JSON.parse(event.data);
+
+      if (data.type === "device") {
+        isDeviceConnected = !!data.readerName;
+        currentReaderName = data.readerName || null;
+        updateSystemStatus();
+        return;
+      }
+
+      if (data.type === "session") {
+        isSessionActive = data.active;
+        updateSystemStatus();
+        return;
+      }
+
+      if (data.type === "attendanceList") {
+        updateAttendanceTable(data.attendees);
+        updateSummary(data.attendees.length, data.total);
+        return;
+      }
+
+      if (data.type === "attendance") {
+        if (isRegisterMode && !registerPendingUID) {
+          registerPendingUID = data.uid;
+          document.getElementById("reg-uid").textContent = registerPendingUID;
+          document.getElementById("registration-modal").style.display = "block";
+          return;
+        }
+
+        nameEl.textContent = data.name || "-";
+        idEl.textContent = data.id || "-";
+        statusEl.textContent = data.status;
+
+        cardInfoEl.classList.remove("green-bg", "orange-bg", "blue-bg", "red-bg");
+        statusEl.classList.remove("pulse");
+
+        switch (data.status) {
+          case "Complete Attendance": cardInfoEl.classList.add("green-bg"); break;
+          case "Already Checked": cardInfoEl.classList.add("orange-bg"); break;
+          case "Registered Card": cardInfoEl.classList.add("blue-bg"); break;
+          case "Unknown Card": cardInfoEl.classList.add("red-bg"); break;
+          default: statusEl.classList.add("pulse");
+        }
+
+        setTimeout(() => {
+          nameEl.textContent = "-";
+          idEl.textContent = "-";
+          statusEl.textContent = "Waiting for card...";
+          cardInfoEl.classList.remove("green-bg", "orange-bg", "blue-bg", "red-bg");
+          if (isDeviceConnected) statusEl.classList.add("pulse");
+        }, 1000);
+      }
+    };
+
+    function updateAttendanceTable(attendees) {
+      tableBody.innerHTML = "";
+      attendees.slice(-5).reverse().forEach(entry => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${entry.id}</td><td>${entry.name}</td><td>${entry.timestamp}</td>`;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function updateSummary(present, total) {
+      const rate = ((present / total) * 100).toFixed(1);
+      summaryEl.textContent = `Attendance: ${present} / ${total} (${rate}%)`;
+      document.getElementById("progress-bar-fill").style.width = `${rate}%`;
+    }
+
+    function updateSystemStatus() {
+      const section = document.querySelector(".attendance-section");
+      if (!isDeviceConnected) {
+        statusDot.className = "status-dot red";
+        statusText.textContent = "Device disconnected";
+        deviceStatusEl.textContent = "NFC device disconnected";
+        statusEl.classList.remove("pulse");
+        section.style.display = "none";
+      } else if (!isSessionActive) {
+        statusDot.className = "status-dot blue";
+        statusText.textContent = "Standby";
+        deviceStatusEl.textContent = `${currentReaderName} connected`;
+        statusEl.classList.add("pulse");
+        section.style.display = "none";
+      } else {
+        statusDot.className = "status-dot green";
+        statusText.textContent = "Attendance session";
+        deviceStatusEl.textContent = `${currentReaderName} connected`;
+        statusEl.classList.add("pulse");
+        section.style.display = "block";
+      }
+    }
+
+    function startSession() {
+      if (!isDeviceConnected) {
+        alert("Cannot start attendance session: Device not connected.");
+        return;
+      }
+      socket.send(JSON.stringify({ type: "start" }));
+    }
+
+    function endSession() {
+      if (!isDeviceConnected || !isSessionActive) {
+        alert("Cannot end session: no session active.");
+        return;
+      }
+      socket.send(JSON.stringify({ type: "end" }));
+    }
+
+    function updateDateTime() {
+      const now = new Date();
+      const formatted = now.toLocaleString("en-GB", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+      document.getElementById("datetime").textContent = formatted;
+    }
+
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    function startRegistrationMode() {
+      if (!isDeviceConnected) {
+        alert("Device not connected.");
+        return;
+      }
+      isRegisterMode = true;
+      registerPendingUID = null;
+      alert("Please tag the card you want to register.");
+    }
+
+    function submitRegistration() {
+      const name = document.getElementById("reg-name").value.trim();
+      const id = document.getElementById("reg-id").value.trim();
+      if (!registerPendingUID || !name || !id) {
+        alert("Please fill in all fields.");
+        return;
+      }
+      socket.send(JSON.stringify({
+        type: "register",
+        uid: registerPendingUID,
+        name,
+        id
+      }));
+      closeRegistrationModal();
+    }
+
+    function cancelRegistration() {
+      closeRegistrationModal();
+    }
+
+    function closeRegistrationModal() {
+      document.getElementById("registration-modal").style.display = "none";
+      document.getElementById("reg-name").value = "";
+      document.getElementById("reg-id").value = "";
+      isRegisterMode = false;
+      registerPendingUID = null;
+    }
+  </script>
+</body>
+</html>
