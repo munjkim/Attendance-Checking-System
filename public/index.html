@@ -52,6 +52,7 @@
     <button onclick="startSession()">Start</button>
     <button onclick="endSession()">End</button>
     <button onclick="startRegistrationMode()">Card Registration</button>
+    <button id="manual-btn" onclick="openManualModal()">Manual Check</button>
   </div>
 
   <!-- 왼쪽 하단 상태 인디케이터 -->
@@ -72,6 +73,17 @@
       <input id="reg-id" placeholder="Student ID" />
       <button onclick="submitRegistration()">Register</button>
       <button onclick="cancelRegistration()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- 수동 출석 체크 모달 -->
+  <div id="manual-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h3>Manual Check</h3>
+      <input id="manual-name" placeholder="Name" />
+      <input id="manual-id" placeholder="Student ID" />
+      <button onclick="submitManual()">Submit</button>
+      <button onclick="closeManualModal()">Cancel</button>
     </div>
   </div>
 
@@ -167,6 +179,29 @@
       document.getElementById("progress-bar-fill").style.width = `${rate}%`;
     }
 
+    function openManualModal() {
+      if (!isSessionActive) {
+        alert("Manual Check is available only during active session.");
+        return;
+      }
+      document.getElementById("manual-modal").style.display = "flex";
+    }
+
+    function closeManualModal() {
+      document.getElementById("manual-modal").style.display = "none";
+    }
+
+    function submitManual() {
+      const name = document.getElementById("manual-name").value.trim();
+      const id = document.getElementById("manual-id").value.trim();
+      if (!name || !id) {
+        alert("Please enter both name and student ID.");
+        return;
+      }
+      socket.send(JSON.stringify({ type: "manual", name, id }));
+      closeManualModal();
+    }
+
     function updateSystemStatus() {
       const section = document.querySelector(".attendance-section");
       if (!isDeviceConnected) {
@@ -187,6 +222,11 @@
         deviceStatusEl.textContent = `${currentReaderName} connected`;
         statusEl.classList.add("pulse");
         section.style.display = "block";
+      }
+
+      const manualBtn = document.getElementById("manual-btn");
+      if (manualBtn) {
+        manualBtn.disabled = !(isSessionActive && isDeviceConnected);
       }
     }
 
