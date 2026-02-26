@@ -47,17 +47,27 @@ http://localhost:3000
 
 # 📋 Basic Usage
 
-▶ Start Attendance Session
-	1.	Make sure NFC reader is connected.
-	2.	Click Start.
-	3.	The attendance section will appear.
-	4.	Students can tag their card.
+### 👩‍💻 Card Registration (=Updating /data foler)
+The UID must be registered to the students.json file first.
+1.	Make sure the NFC reader is connected.
+2.	Click Card Registration.
+3.	Tag the new card and ***press 'Enter'***.
+4.	Enter the student’s Name and Student ID.
+5.	Click Register.
+6.	The student will be added to data/students.json.
 
-📝 Manual Check (for students without card)
-	•	Available only during active attendance session.
-	•	Click Manual Check
-	•	Enter Student Name and Student ID
-	•	Student must already exist in students.json
+
+### ▶ Start Attendance Session
+1.	Make sure NFC reader is connected.
+2.	Click Start.
+3.	The attendance section will appear.
+4.	Students can tag their card.
+
+### 📝 Manual Check (for students without card)
+1. Available only during active attendance session.
+2. Click Manual Check
+3. Enter Student Name and Student ID
+4. Student must already exist in students.json
 
 ---
 
@@ -86,6 +96,7 @@ Attendance-Checking-System/
 │
 ├── server.js
 ├── package.json
+├── package-lock.json
 ├── public/
 │   ├── index.html
 │   └── style.css
