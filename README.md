@@ -34,13 +34,9 @@ npm install
 ```
 This will create the node_modules folder automatically.
 
-3️⃣ Start the server
+3️⃣ Start the server and open in browser
 ```bash
-node server.js
-```
-4️⃣ Open in browser
-```code
-http://localhost:3000
+node server.js & open -a "Google Chrome" http://localhost:3000
 ```
 
 ---
