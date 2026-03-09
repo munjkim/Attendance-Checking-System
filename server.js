@@ -172,6 +172,15 @@ nfc.on("reader", reader => {
   currentReaderName = reader.name;
   broadcast({ type: "device", readerName: currentReaderName });
 
+  reader.on("error", err => {
+    console.error(`Error (${reader.name}):`, err);
+
+    broadcast({ type: "attendance", status: "Not a Student Card", name: "-", id: "-", uid: "" });
+
+    return;
+
+  });
+
   reader.on("card", card => {
     const uid = card.uid;
     const student = studentList[uid];
